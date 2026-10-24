@@ -1,0 +1,14 @@
+{
+  "name": "@shipit-software/csv-validator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local CSV validation with actionable record, field and line diagnostics",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "bin": { "shipit-csv-validate": "src/cli.mjs" },
+  "exports": "./src/validate.mjs",
+  "files": ["src", "README.md", "LICENSE"],
+  "homepage": "https://csvfile.tools/validate",
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}
