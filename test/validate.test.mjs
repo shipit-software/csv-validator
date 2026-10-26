@@ -116,3 +116,15 @@ test('CLI bounds piped data and offers help/version without input', () => {
   assert.match(command(['--help']).stdout, /Exit codes/);
   assert.equal(command(['--version']).stdout, '0.1.0\n');
 });
+
+
+test('JSON usage errors do not depend on the option order or dash-prefixed filenames', () => {
+  const result = command(['--unknown', '--json']);
+  assert.equal(result.status, 2);
+  assert.equal(JSON.parse(result.stdout).error.code, 'USAGE');
+  assert.equal(result.stderr, '');
+  const boundary = command(['--', '--json']);
+  assert.equal(boundary.status, 2);
+  assert.equal(boundary.stdout, '');
+  assert.equal(boundary.stderr, 'Could not read input\n');
+});

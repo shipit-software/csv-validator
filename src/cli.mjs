@@ -19,7 +19,8 @@ Limit: buffered UTF-8 input, up to 32 MiB. No type/schema inference.
 `;
 const LIMIT = 32 * 1024 * 1024;
 const args = process.argv.slice(2);
-let json = false;
+const optionBoundary = args.indexOf('--');
+const json = args.slice(0, optionBoundary < 0 ? args.length : optionBoundary).includes('--json');
 let delimiter = ',';
 let header = true;
 let maxErrors = 100;
@@ -35,7 +36,7 @@ try {
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (!endOptions && argument === '--') { endOptions = true; continue; }
-    if (!endOptions && argument === '--json') { json = true; continue; }
+    if (!endOptions && argument === '--json') continue;
     if (!endOptions && argument === '--help') { process.stdout.write(HELP); process.exit(0); }
     if (!endOptions && argument === '--version') { process.stdout.write('0.1.0\n'); process.exit(0); }
     if (!endOptions && argument === '--no-header') { header = false; continue; }
