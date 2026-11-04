@@ -32,3 +32,32 @@ Deno.test("portable API supports TSV without headers and rejects malformed optio
     equal(rejected, true);
   }
 });
+
+Deno.test("Deno matches all independently specified shared conformance v1 reports", () => {
+  const text = Deno.readTextFileSync(new URL("../rust/tests/fixtures/csv-v1.tsv", import.meta.url));
+  const names = new Set<string>();
+  const decodeHex = (hex: string): string => {
+    if (!/^(?:[0-9a-f]{2})*$/.test(hex)) throw new Error("Invalid corpus hex");
+    return new TextDecoder("utf-8", { fatal: true }).decode(
+      Uint8Array.from(hex.match(/../g) ?? [], (pair) => parseInt(pair, 16)),
+    );
+  };
+  for (const line of text.split(/\r?\n/)) {
+    if (!line || line.startsWith("#")) continue;
+    const columns = line.split("\t");
+    equal(columns.length, 6);
+    const [name, inputHex, delimiterHex, header, maxErrors, expected] = columns;
+    if (names.has(name)) throw new Error(`Duplicate corpus case ${name}`);
+    names.add(name);
+    if (!/^(?:true|false)$/.test(header) || !/^[1-9][0-9]*$/.test(maxErrors)) {
+      throw new Error(`Invalid corpus options: ${name}`);
+    }
+    const report = validateCsv(decodeHex(inputHex), {
+      delimiter: decodeHex(delimiterHex), header: header === "true", maxErrors: Number(maxErrors),
+    });
+    if (JSON.stringify(report) !== JSON.stringify(JSON.parse(expected))) {
+      throw new Error(`Shared conformance failed: ${name}`);
+    }
+  }
+  equal(names.size, 22);
+});

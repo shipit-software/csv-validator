@@ -77,7 +77,7 @@ console.log(result.valid, result.dataRecords); // true 1
 `jsr.json` prepares the proposed `@shipit-software/csv-validator` 0.1.0 package
 from this same source. This is a local release candidate, not a claim that the
 package is available on JSR. JSR exports the library API; the Node CLI above
-remains separate. Check it locally with `deno test test/deno-api.test.ts` and
+remains separate. Check it locally with `deno test --allow-read=rust/tests/fixtures/csv-v1.tsv test/deno-api.test.ts` and
 `deno publish --dry-run` before any release. No runtime dependencies or JSR-only
 copy of the validator are needed. The explicit JSR file list contains only the
 API source and type declarations, package metadata, this README and the MIT license.
