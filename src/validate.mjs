@@ -1,6 +1,17 @@
+/* @ts-self-types="./validate.d.ts" */
+
 /**
  * Validate comma-separated records without guessing types or changing values.
  * record/field/line/column positions are one-based; CRLF counts as one line.
+ * This synchronous API has no filesystem, network, environment or runtime dependency.
+ *
+ * @param {string} input Complete CSV text, optionally beginning with a UTF-8 BOM.
+ * @param {import('./validate.d.ts').ValidationOptions} [options] Delimiter, header and diagnostic controls.
+ * @returns {import('./validate.d.ts').ValidationReport} Validation summary and exact diagnostic positions.
+ * @throws {TypeError} When the input or options are invalid.
+ * @example
+ * const report = validateCsv('id,name\n1,Ada');
+ * console.log(report.valid); // true
  */
 export function validateCsv(input, { delimiter = ',', header = true, maxErrors = 100 } = {}) {
   if (typeof input !== 'string') throw new TypeError('Input must be a string');

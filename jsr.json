@@ -1,0 +1,9 @@
+{
+  "name": "@shipit-software/csv-validator",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": "./src/validate.mjs",
+  "publish": {
+    "include": ["jsr.json", "src/validate.mjs", "src/validate.d.ts", "README.md", "LICENSE"]
+  }
+}

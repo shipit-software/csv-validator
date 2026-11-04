@@ -61,3 +61,23 @@ node --test test/*.test.mjs
 ```
 
 All test data is synthetic. MIT licensed; see [LICENSE](LICENSE).
+
+## Portable JavaScript API and JSR candidate
+
+The same `validateCsv` implementation also runs in Deno without filesystem,
+network, environment or subprocess permissions. It takes complete text and
+returns the documented validation report; it does not read or upload files.
+
+```js
+import { validateCsv } from './src/validate.mjs';
+const result = validateCsv('id,name\n001,Ada');
+console.log(result.valid, result.dataRecords); // true 1
+```
+
+`jsr.json` prepares the proposed `@shipit-software/csv-validator` 0.1.0 package
+from this same source. This is a local release candidate, not a claim that the
+package is available on JSR. JSR exports the library API; the Node CLI above
+remains separate. Check it locally with `deno test test/deno-api.test.ts` and
+`deno publish --dry-run` before any release. No runtime dependencies or JSR-only
+copy of the validator are needed. The explicit JSR file list contains only the
+API source and type declarations, package metadata, this README and the MIT license.
