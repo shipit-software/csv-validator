@@ -1,0 +1,20 @@
+[package]
+name = "shipit-csv-validator"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.93"
+description = "Dependency-free local CSV validation with record, field and source diagnostics"
+license = "MIT"
+homepage = "https://csvfile.tools/validate"
+repository = "https://github.com/shipit-software/csv-validator"
+readme = "README.md"
+include = ["Cargo.toml", "Cargo.lock", "README.md", "LICENSE", "src/**", "tests/**"]
+keywords = ["csv", "validation", "cli"]
+categories = ["command-line-utilities", "parser-implementations"]
+
+[lib]
+name = "shipit_csv_validator"
+
+[[bin]]
+name = "shipit-csv-validate"
+path = "src/main.rs"
