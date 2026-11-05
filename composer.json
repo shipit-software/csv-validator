@@ -1,0 +1,27 @@
+{
+    "name": "shipit-software/csv-validator",
+    "description": "Validate UTF-8 CSV structure and report precise diagnostic positions.",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://csvfile.tools/validate",
+    "keywords": [
+        "csv",
+        "validation",
+        "cli"
+    ],
+    "support": {
+        "source": "https://github.com/shipit-software/csv-validator",
+        "issues": "https://github.com/shipit-software/csv-validator/issues"
+    },
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ShipitSoftware\\CsvValidator\\": "php/src/"
+        }
+    },
+    "bin": [
+        "php/bin/shipit-csv-validate"
+    ]
+}

@@ -8,8 +8,8 @@ The implementations here are standalone tools; the website has its own source.
 
 ## Install a CLI
 
-Choose the Node.js or Rust implementation. Both install the command
-`shipit-csv-validate`, so install only one globally at a time.
+The implementations expose the same `shipit-csv-validate` command. Choose the
+installation that fits your runtime.
 
 With Node.js 22 or newer, install from [npm](https://www.npmjs.com/package/@shipit-software/csv-validator):
 
@@ -33,6 +33,17 @@ shipit-csv-validate --delimiter tab --no-header data.tsv
 The [Python implementation](python/README.md) is also available in this repository.
 For local use with Python 3.11 or newer, run `python -m pip install ./python`
 from a source checkout. This is not a claim of PyPI availability.
+
+With PHP 8.1 or newer, install the [Composer package](https://packagist.org/packages/shipit-software/csv-validator)
+in your project:
+
+```sh
+composer require shipit-software/csv-validator:^0.1
+vendor/bin/shipit-csv-validate --json data.csv
+```
+
+See the [PHP guide](php/README.md) for the library API.
+
 
 ## Checks
 
@@ -94,7 +105,7 @@ The Node CLI adds file/stdin reading, UTF-8 decoding and exit codes.
 ## Source and packages
 
 [GitHub source](https://github.com/shipit-software/csv-validator) contains the
-JavaScript, Rust and Python implementations of this tool. Releases are available
+source for each implementation of this tool. Releases are available
 on [npm](https://www.npmjs.com/package/@shipit-software/csv-validator),
 [crates.io](https://crates.io/crates/shipit-csv-validator) and
 [JSR](https://jsr.io/@shipit-software/csv-validator).

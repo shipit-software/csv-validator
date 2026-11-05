@@ -1,0 +1,147 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use ShipitSoftware\CsvValidator\Validator;
+
+$autoload = $GLOBALS['_composer_autoload_path'] ?? dirname(__DIR__, 2) . '/vendor/autoload.php';
+if (is_file($autoload)) {
+    require $autoload;
+} else {
+    require dirname(__DIR__) . '/src/Validator.php';
+    require dirname(__DIR__) . '/src/Parser.php';
+}
+
+const INPUT_LIMIT = 32 * 1024 * 1024;
+const HELP = <<<'TEXT'
+Usage: shipit-csv-validate [options] [FILE|-]
+Validate UTF-8 CSV from a file or standard input.
+
+  --json              Print a JSON report
+  --delimiter CHAR    Use another delimiter (use "tab" for a tab)
+  --no-header         Treat the first record as data
+  --max-errors N      Cap diagnostics (1-10000, default 100)
+  --help              Show help
+  --version           Show the version
+  --                  End options
+
+Exit codes: 0 valid, 1 invalid CSV, 2 usage or input error.
+Input is buffered and limited to 32 MiB.
+TEXT;
+
+function failInput(bool $asJson, string $code, string $message): never
+{
+    if ($asJson) {
+        echo json_encode(['valid' => false, 'error' => compact('code', 'message')], JSON_THROW_ON_ERROR) . PHP_EOL;
+    } else {
+        fwrite(STDERR, $message . PHP_EOL);
+    }
+    exit(2);
+}
+
+$arguments = array_slice($argv, 1);
+$separator = array_search('--', $arguments, true);
+$asJson = in_array('--json', $separator === false ? $arguments : array_slice($arguments, 0, $separator), true);
+$endOptions = false;
+$path = null;
+$delimiter = ',';
+$header = true;
+$maxErrors = 100;
+
+try {
+    for ($index = 0, $count = count($arguments); $index < $count; ++$index) {
+        $argument = $arguments[$index];
+        if (!$endOptions) {
+            switch ($argument) {
+                case '--':
+                    $endOptions = true;
+                    continue 2;
+                case '--help':
+                    echo HELP . PHP_EOL;
+                    exit(0);
+                case '--version':
+                    echo '0.1.0' . PHP_EOL;
+                    exit(0);
+                case '--json':
+                    continue 2;
+                case '--no-header':
+                    $header = false;
+                    continue 2;
+                case '--delimiter':
+                    $value = $arguments[++$index] ?? throw new InvalidArgumentException('Missing option value');
+                    $delimiter = $value === 'tab' ? "\t" : $value;
+                    continue 2;
+                case '--max-errors':
+                    $value = $arguments[++$index] ?? throw new InvalidArgumentException('Missing option value');
+                    if (preg_match('/\A[1-9][0-9]{0,4}\z/', $value) !== 1 || (int) $value > 10_000) {
+                        throw new InvalidArgumentException('Maximum errors must be 1-10000');
+                    }
+                    $maxErrors = (int) $value;
+                    continue 2;
+            }
+            if ($argument !== '-' && str_starts_with($argument, '-')) {
+                throw new InvalidArgumentException('Unknown option. Use --help.');
+            }
+        }
+        if ($path !== null) {
+            throw new InvalidArgumentException('Provide one file, or standard input');
+        }
+        $path = $argument;
+    }
+    // Validate options before reading a file or blocking on standard input.
+    Validator::validate('', $delimiter, $header, $maxErrors);
+} catch (InvalidArgumentException $error) {
+    failInput($asJson, 'USAGE', $error->getMessage());
+}
+
+if ($path === null || $path === '-') {
+    $stream = STDIN;
+} else {
+    if (preg_match('~\A[a-z][a-z0-9+.-]*://~i', $path) || !is_file($path)) {
+        failInput($asJson, 'INPUT_READ', 'Could not read input');
+    }
+    $stream = @fopen($path, 'rb');
+    if ($stream === false) {
+        failInput($asJson, 'INPUT_READ', 'Could not read input');
+    }
+}
+
+$data = @stream_get_contents($stream, INPUT_LIMIT + 1);
+if ($stream !== STDIN) {
+    fclose($stream);
+}
+if ($data === false) {
+    failInput($asJson, 'INPUT_READ', 'Could not read input');
+}
+if (strlen($data) > INPUT_LIMIT) {
+    failInput($asJson, 'INPUT_LIMIT', 'Input exceeds the 32 MiB limit');
+}
+
+try {
+    $report = Validator::validate($data, $delimiter, $header, $maxErrors);
+} catch (InvalidArgumentException $error) {
+    failInput($asJson, 'INPUT_ENCODING', $error->getMessage());
+}
+
+if ($asJson) {
+    echo json_encode($report, JSON_THROW_ON_ERROR) . PHP_EOL;
+} elseif ($report['valid']) {
+    echo "Valid CSV: {$report['dataRecords']} data records, {$report['columns']} columns" . PHP_EOL;
+} else {
+    foreach ($report['diagnostics'] as $issue) {
+        printf(
+            "%s: record %d, field %d, line %d, column %d: %s\n",
+            $issue['code'],
+            $issue['record'],
+            $issue['field'],
+            $issue['line'],
+            $issue['column'],
+            $issue['message']
+        );
+    }
+    if ($report['diagnosticsTruncated']) {
+        echo 'Additional diagnostics omitted' . PHP_EOL;
+    }
+}
+exit($report['valid'] ? 0 : 1);
