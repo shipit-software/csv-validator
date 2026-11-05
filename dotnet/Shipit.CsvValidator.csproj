@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>none</DebugType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>shipit-csv-validate</ToolCommandName>
+    <PackageId>Shipit.CsvValidator</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Shipit Software</Authors>
+    <Description>Dependency-free local CSV validation with record, field and source diagnostics.</Description>
+    <PackageTags>csv;validator;linter;cli;dotnet-tool</PackageTags>
+    <PackageProjectUrl>https://csvfile.tools/validate</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/shipit-software/csv-validator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="" />
+    <None Include="../LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>
