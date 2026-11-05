@@ -10,5 +10,6 @@
   "exports": "./src/validate.mjs",
   "files": ["src", "README.md", "LICENSE"],
   "homepage": "https://csvfile.tools/validate",
+  "repository": { "type": "git", "url": "https://github.com/shipit-software/csv-validator.git" },
   "scripts": { "test": "node --test test/*.test.mjs" }
 }

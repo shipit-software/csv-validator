@@ -4,19 +4,35 @@ Validate UTF-8 CSV locally and get record, field, line and column diagnostics.
 No runtime dependencies, uploads, type guessing or automatic edits.
 
 For an interactive workflow, use [CSV File Tools' CSV validator](https://csvfile.tools/validate).
+The implementations here are standalone tools; the website has its own source.
 
-## Run locally
+## Install a CLI
 
-Requires Node.js 22 or newer:
+Choose the Node.js or Rust implementation. Both install the command
+`shipit-csv-validate`, so install only one globally at a time.
+
+With Node.js 22 or newer, install from [npm](https://www.npmjs.com/package/@shipit-software/csv-validator):
 
 ```sh
-node src/cli.mjs data.csv
-node src/cli.mjs --json data.csv
-cat data.csv | node src/cli.mjs --json
-node src/cli.mjs --delimiter tab --no-header data.tsv
+npm install --global @shipit-software/csv-validator@0.1.0
 ```
 
-The package name is a proposed identity; use the local command above.
+With Rust 1.93 or newer, install from [crates.io](https://crates.io/crates/shipit-csv-validator):
+
+```sh
+cargo install shipit-csv-validator --version 0.1.0
+```
+
+```sh
+shipit-csv-validate data.csv
+shipit-csv-validate --json data.csv
+cat data.csv | shipit-csv-validate --json
+shipit-csv-validate --delimiter tab --no-header data.tsv
+```
+
+The [Python implementation](python/README.md) is also available in this repository.
+For local use with Python 3.11 or newer, run `python -m pip install ./python`
+from a source checkout. This is not a claim of PyPI availability.
 
 ## Checks
 
@@ -44,40 +60,50 @@ Usage, encoding and read errors return `{ "valid": false, "error": { "code": "�
 - `1`: invalid CSV.
 - `2`: usage, file access, input encoding or size error.
 
-The CLI buffers up to 32 MiB of UTF-8 input. Its default diagnostic limit is 100;
-`--max-errors` accepts 1–10,000. The library API validates an already loaded string
-and does not impose the CLI's byte limit. Columns count UTF-16 code units; a
-delimiter must be one UTF-16 code unit other than quote, CR, LF or NUL.
+The CLIs buffer up to 32 MiB of UTF-8 input. Their default diagnostic limit is
+100; `--max-errors` accepts 1–10,000. Source columns count UTF-16 code units;
+a delimiter must be one UTF-16 code unit other than quote, CR, LF or NUL.
 
-## Library and tests
+## JavaScript library
+
+The [JSR package](https://jsr.io/@shipit-software/csv-validator) exports the
+portable library API, with no CLI or file-reading interface:
 
 ```js
-import { validateCsv } from './src/validate.mjs';
-const report = validateCsv('id,name\n1,Ada');
+import { validateCsv } from 'jsr:@shipit-software/csv-validator@0.1.0';
+const report = validateCsv('id,name\n001,Ada');
+console.log(report.valid, report.dataRecords); // true 1
 ```
+
+In Node.js, install the npm package locally and import the same API:
+
+```sh
+npm install @shipit-software/csv-validator@0.1.0
+```
+
+```js
+import { validateCsv } from '@shipit-software/csv-validator';
+const report = validateCsv('id,name\n001,Ada');
+```
+
+The JavaScript API accepts an already loaded string and does not impose the
+CLI byte limit or perform UTF-8 byte decoding. It does not read files, upload
+input, or require filesystem, network, environment or subprocess permissions.
+The Node CLI adds file/stdin reading, UTF-8 decoding and exit codes.
+
+## Source and packages
+
+[GitHub source](https://github.com/shipit-software/csv-validator) contains the
+JavaScript, Rust and Python implementations of this tool. Releases are available
+on [npm](https://www.npmjs.com/package/@shipit-software/csv-validator),
+[crates.io](https://crates.io/crates/shipit-csv-validator) and
+[JSR](https://jsr.io/@shipit-software/csv-validator).
+For browser-based validation, open the [CSV validator](https://csvfile.tools/validate).
+
+From a source checkout, run the JavaScript tests with:
 
 ```sh
 node --test test/*.test.mjs
 ```
 
 All test data is synthetic. MIT licensed; see [LICENSE](LICENSE).
-
-## Portable JavaScript API and JSR candidate
-
-The same `validateCsv` implementation also runs in Deno without filesystem,
-network, environment or subprocess permissions. It takes complete text and
-returns the documented validation report; it does not read or upload files.
-
-```js
-import { validateCsv } from './src/validate.mjs';
-const result = validateCsv('id,name\n001,Ada');
-console.log(result.valid, result.dataRecords); // true 1
-```
-
-`jsr.json` prepares the proposed `@shipit-software/csv-validator` 0.1.0 package
-from this same source. This is a local release candidate, not a claim that the
-package is available on JSR. JSR exports the library API; the Node CLI above
-remains separate. Check it locally with `deno test --allow-read=rust/tests/fixtures/csv-v1.tsv test/deno-api.test.ts` and
-`deno publish --dry-run` before any release. No runtime dependencies or JSR-only
-copy of the validator are needed. The explicit JSR file list contains only the
-API source and type declarations, package metadata, this README and the MIT license.
