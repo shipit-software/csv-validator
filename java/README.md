@@ -36,7 +36,7 @@ java -jar csv-validator-0.1.0.jar --json data.csv
 ```
 
 From the repository root, run `sh java/build-release.sh /path/to/new-output`
-with a Java 17+ JDK and Python 3. This builds the executable, sources and
+with OpenJDK 21 and Python 3. This builds the executable, sources and
 Javadoc archives and tests the resulting JAR with the shared fixtures.
 
 [Online CSV validator](https://csvfile.tools/validate) ·
