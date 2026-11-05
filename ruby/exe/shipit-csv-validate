@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "json"
+require "shipit/csv_validator"
+
+module CsvValidatorCommand
+  INPUT_LIMIT = 32 * 1024 * 1024
+  HELP = <<~TEXT
+    Usage: shipit-csv-validate [options] [FILE|-]
+    Validate UTF-8 CSV from a file or standard input.
+
+      --json              Print a JSON report
+      --delimiter CHAR    Use a different delimiter (use "tab" for a tab)
+      --no-header         Treat the first record as data
+      --max-errors N      Cap diagnostics (1-10000, default 100)
+      --help              Show help
+      --version           Show the version
+      --                  End options
+
+    Exit codes: 0 valid, 1 invalid CSV, 2 usage or input error.
+    Input is buffered and limited to 32 MiB. No type or schema inference.
+  TEXT
+
+  def self.parse(arguments)
+    args = arguments.dup
+    options = {}
+    path = nil
+    end_options = false
+    until args.empty?
+      arg = args.shift
+      unless end_options
+        case arg
+        when "--"
+          end_options = true
+          next
+        when "--help", "--version"
+          return [arg, nil, options]
+        when "--json"
+          next
+        when "--no-header"
+          options[:header] = false
+          next
+        when "--delimiter"
+          value = args.shift or raise ArgumentError, "missing option value"
+          options[:delimiter] = value == "tab" ? "\t" : value
+          next
+        when "--max-errors"
+          value = args.shift or raise ArgumentError, "missing option value"
+          unless /\A[1-9][0-9]{0,4}\z/.match?(value) && value.to_i <= 10_000
+            raise ArgumentError, "maximum errors must be 1-10000"
+          end
+          options[:max_errors] = value.to_i
+          next
+        end
+        raise ArgumentError, "unknown option; use --help" if arg.start_with?("-") && arg != "-"
+      end
+      raise ArgumentError, "provide one file, or standard input" if path
+
+      path = arg
+    end
+    [nil, path, options]
+  end
+
+  def self.run(args)
+    as_json = args.take_while { |arg| arg != "--" }.include?("--json")
+    fail_input = lambda do |code, message|
+      if as_json
+        puts JSON.generate(valid: false, error: { code: code, message: message })
+      else
+        warn message
+      end
+      2
+    end
+
+    begin
+      action, path, options = parse(args)
+      if action
+        puts action == "--help" ? HELP : Shipit::CsvValidator::VERSION
+        return 0
+      end
+      # Validate options before reading a file or blocking on standard input.
+      Shipit::CsvValidator.validate("", **options)
+    rescue ArgumentError => error
+      return fail_input.call("USAGE", error.message)
+    end
+
+    begin
+      data = if path.nil? || path == "-"
+               STDIN.binmode.read(INPUT_LIMIT + 1)
+             else
+               File.binread(path, INPUT_LIMIT + 1)
+             end
+    rescue SystemCallError, IOError
+      return fail_input.call("INPUT_READ", "Could not read input")
+    end
+    return fail_input.call("INPUT_LIMIT", "Input exceeds the 32 MiB limit") if data.to_s.bytesize > INPUT_LIMIT
+
+    begin
+      report = Shipit::CsvValidator.validate(data.to_s, **options)
+    rescue ArgumentError => error
+      return fail_input.call("INPUT_ENCODING", error.message)
+    end
+
+    if as_json
+      puts JSON.generate(report)
+    elsif report["valid"]
+      puts "Valid CSV: #{report['dataRecords']} data records, #{report['columns']} columns"
+    else
+      report["diagnostics"].each do |issue|
+        puts format("%<code>s: record %<record>d, field %<field>d, line %<line>d, column %<column>d: %<message>s",
+                    **issue.transform_keys(&:to_sym))
+      end
+      puts "Additional diagnostics omitted" if report["diagnosticsTruncated"]
+    end
+    report["valid"] ? 0 : 1
+  end
+end
+
+exit CsvValidatorCommand.run(ARGV)
