@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.shipitsoftware</groupId>
+  <artifactId>csv-validator</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+  <name>Shipit CSV Validator</name>
+  <description>Dependency-free Java library and command-line utility for validating CSV structure.</description>
+  <url>https://csvfile.tools/validate</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/license/mit</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>shipit-software</id>
+      <name>Shipit Software</name>
+      <organization>Shipit Software</organization>
+      <organizationUrl>https://shipitsoftware.com</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/shipit-software/csv-validator.git</connection>
+    <developerConnection>scm:git:https://github.com/shipit-software/csv-validator.git</developerConnection>
+    <url>https://github.com/shipit-software/csv-validator</url>
+  </scm>
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.outputTimestamp>2026-11-06T00:00:00Z</project.build.outputTimestamp>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.shipitsoftware.csvvalidator.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
